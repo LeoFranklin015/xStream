@@ -10,7 +10,7 @@ import { SignModal } from "@/components/sign-modal";
 type ModalType = "connect" | "send" | "sign" | null;
 
 export default function Home() {
-  const { account } = useAccount();
+  const { account, isRestoring } = useAccount();
   const [activeModal, setActiveModal] = useState<ModalType>(null);
 
   const examples = [
@@ -75,6 +75,17 @@ export default function Home() {
       hover: "hover:border-emerald-500/40 hover:bg-emerald-500/15",
     },
   };
+
+  if (isRestoring) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-zinc-950">
+        <div className="flex flex-col items-center gap-3">
+          <div className="h-8 w-8 animate-spin rounded-full border-2 border-zinc-700 border-t-blue-500" />
+          <p className="text-sm text-zinc-500">Restoring session...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-zinc-950">

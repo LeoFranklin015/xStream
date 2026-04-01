@@ -12,6 +12,7 @@ interface StoredAccount {
   publicKey: string;
   creationDate: string;
   isImported: boolean;
+  address?: string; // resolved from our session storage
 }
 
 interface ConnectModalProps {
@@ -32,8 +33,21 @@ export function ConnectModal({ open, onClose }: ConnectModalProps) {
   useEffect(() => {
     if (!open) return;
     try {
-      const accounts = Account.getStoredAccounts(apiKey);
-      setStoredAccounts((accounts as unknown as StoredAccount[]) ?? []);
+      const accounts = (Account.getStoredAccounts(apiKey) ?? []) as unknown as StoredAccount[];
+
+      // Enrich with address from the SDK's own authState (jaw:passkey:authState)
+      const authState = Account.getAuthenticatedAddress(apiKey);
+      const currentAccount = Account.getCurrentAccount(apiKey);
+
+      const enriched = accounts.map((a) => ({
+        ...a,
+        address:
+          currentAccount?.credentialId === a.credentialId && authState
+            ? authState
+            : undefined,
+      }));
+
+      setStoredAccounts(enriched);
     } catch {
       setStoredAccounts([]);
     }
@@ -162,7 +176,9 @@ export function ConnectModal({ open, onClose }: ConnectModalProps) {
                         {stored.username || "Unnamed Account"}
                       </p>
                       <p className="truncate font-mono text-[11px] text-zinc-500">
-                        {stored.publicKey ? `${stored.publicKey.slice(0, 12)}...${stored.publicKey.slice(-8)}` : stored.credentialId.slice(0, 20)}
+                        {stored.address
+                          ? `${stored.address.slice(0, 6)}...${stored.address.slice(-4)}`
+                          : `Created ${new Date(stored.creationDate).toLocaleDateString()}`}
                       </p>
                     </div>
                     <svg
