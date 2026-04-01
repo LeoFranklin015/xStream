@@ -52,11 +52,99 @@ export default function DocsPage() {
             <p className="mt-3 text-lg text-muted-foreground">
               {APP_NAME} splits tokenized equity ETFs (xStocks) into a dividend token
               (dx) and a principal token (px) on Base. This reference summarizes
-              product behavior from the protocol specification.
+              product behavior from the protocol specification, with an opening
+              narrative aligned to how yield is unbundled in protocols such as{" "}
+              <a
+                href="https://docs.pendle.finance/pendle-v2/Introduction"
+                className="text-accent underline-offset-4 hover:underline"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Pendle
+              </a>
+              .
             </p>
           </div>
 
           <div className="max-w-3xl space-y-14">
+            <section id="introduction" className="scroll-mt-28">
+              <SectionTitle>Introduction</SectionTitle>
+              <ProseP>
+                How much dividend yield will you earn on a tokenized stock this year?
+                The headline yield is easy to quote; the realized path is not. Cash
+                payouts move with earnings, buybacks, and policy, while the token
+                price swings with the equity tape. Bull phases often lift sentiment
+                and distributions; drawdowns compress both. Like lending rates on
+                money markets, dividend streams are not a single fixed number you can
+                lock in by holding the whole instrument alone.
+              </ProseP>
+              <ProseP>
+                {APP_NAME} is built for that gap: lean into dividend exposure when you
+                want income, and strip or hedge it when you want cleaner price
+                exposure or a different carry profile. The idea parallels how{" "}
+                <a
+                  href="https://docs.pendle.finance/pendle-v2/Introduction"
+                  className="text-accent underline-offset-4 hover:underline"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  Pendle
+                </a>{" "}
+                treats yield on liquid staking and restaking tokens: separate the
+                yield leg from the principal leg so each can trade on its own terms.
+                Here the underlying primitive is not an LST or LRT but{" "}
+                <strong className="text-foreground/90">
+                  dividend-bearing tokenized stocks
+                </strong>{" "}
+                (xStocks) on-chain.
+              </ProseP>
+              <SubTitle>What does {APP_NAME} do?</SubTitle>
+              <ProseP>
+                We give users clearer control over{" "}
+                <strong className="text-foreground/90">equity cash-flow risk</strong>{" "}
+                versus <strong className="text-foreground/90">price risk</strong>. The
+                protocol is a yield-management layer on top of existing
+                dividend-accruing xStocks, not a replacement for the listing or
+                issuer mechanics of those tokens.
+              </ProseP>
+              <ProseP>
+                Two ideas carry most of the mental model (same shape as Pendle&apos;s
+                introduction to V2, adapted to equities):
+              </ProseP>
+              <ul className="mt-3 list-inside list-disc space-y-2 text-[15px] text-muted-foreground">
+                <li>
+                  <strong className="text-foreground/90">Dividend tokenization.</strong>{" "}
+                  Deposited xStock is represented as two legs:{" "}
+                  <strong className="text-foreground/90">dx</strong> captures dividend
+                  rights (rebases accrue to dx), and{" "}
+                  <strong className="text-foreground/90">px</strong> is principal-style
+                  exposure without carrying that dividend accrual on the token
+                  balance. Splitting and recombining mints and burns the pair against
+                  vault inventory, similar in spirit to splitting SY-style wrapped
+                  yield into PT and YT, except the &quot;yield&quot; here is equity
+                  dividend flow on tokenized stock.
+                </li>
+                <li>
+                  <strong className="text-foreground/90">Markets for each leg.</strong>{" "}
+                  dx is designed to trade in a 24/7 income-oriented market; px routes
+                  into a session-based exchange with oracle-based pricing so price
+                  traders can operate without dragging dividend mechanics through
+                  every tick. You do not need to master the exchange internals to
+                  reason about holding or swapping dx vs px.
+                </li>
+              </ul>
+              <ProseP>
+                By unbundling dividend and price, {APP_NAME} supports strategies in the
+                same family as advanced yield markets: isolate or sell the dividend
+                stream, hold fixed-income-like exposure to declared policy, trade
+                price during cash sessions with USDC collateral, supply liquidity, and
+                recombine when the bundle trades rich or cheap versus xStock. Details
+                for vault accounting, oracles, and fees follow in the sections below.
+              </ProseP>
+            </section>
+
+            <Separator />
+
             <section id="overview" className="scroll-mt-28">
               <SectionTitle>Overview</SectionTitle>
               <ProseP>

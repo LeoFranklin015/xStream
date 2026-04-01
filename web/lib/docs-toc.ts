@@ -4,6 +4,7 @@ export type DocsNavItem = {
 };
 
 export const DOCS_NAV: DocsNavItem[] = [
+  { id: "introduction", label: "Introduction" },
   { id: "overview", label: "Overview" },
   { id: "problem", label: "Problem" },
   { id: "goals", label: "Goals" },
