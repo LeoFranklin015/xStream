@@ -14,7 +14,7 @@ const columns = [
   {
     title: "Resources",
     links: [
-      { label: "Documentation", href: "https://docs.xstream.io" },
+      { label: "Documentation", href: "/docs" },
       { label: "Whitepaper", href: "/whitepaper" },
       { label: "Audit Reports", href: "/audits" },
       { label: "Brand Kit", href: "/brand" },

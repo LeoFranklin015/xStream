@@ -16,43 +16,38 @@ const safiraMarch = localFont({
   display: "swap",
 });
 
+function metadataBaseUrl() {
+  if (process.env.NEXT_PUBLIC_SITE_URL) {
+    return new URL(process.env.NEXT_PUBLIC_SITE_URL);
+  }
+  if (process.env.VERCEL_URL) {
+    return new URL(`https://${process.env.VERCEL_URL}`);
+  }
+  return new URL("http://localhost:3000");
+}
+
 export const metadata: Metadata = {
-  title: "xstream Markets - Split. Trade. Earn.",
-  description:
-    "Two tokens. Two markets. One vault. Split tokenized ETFs into income and price exposure tokens. Earn predictable yield or trade with clean leverage.",
-  icons: {
-    icon: [
-      { url: "/favicon-16x16.png", sizes: "16x16", type: "image/png" },
-      { url: "/favicon-32x32.png", sizes: "32x32", type: "image/png" },
-    ],
-    apple: "/apple-touch-icon.png",
-    other: [
-      {
-        rel: "icon",
-        url: "/android-chrome-192x192.png",
-        sizes: "192x192",
-      },
-      {
-        rel: "icon",
-        url: "/android-chrome-512x512.png",
-        sizes: "512x512",
-      },
-    ],
+  metadataBase: metadataBaseUrl(),
+  title: {
+    default: "xStream | Split xStocks into dx and px",
+    template: "%s | xStream",
   },
+  description:
+    "xStream is a DeFi protocol on Base that splits tokenized equities (xStocks) into a dividend token (dx) and a principal token (px): yield around the clock, price exposure in NYSE hours, Pyth-powered pricing, and recombination to the underlying.",
+  applicationName: "xstream Markets",
   manifest: "/site.webmanifest",
   openGraph: {
-    title: "xstream Markets - Split. Trade. Earn.",
+    title: "xStream | Split xStocks into dx and px",
     description:
-      "Two tokens. Two markets. One vault. DeFi dividend stripping and leveraged day trading.",
+      "Yield on dx 24/7. Price on px when the tape is open. One vault, two markets, recombine anytime.",
     type: "website",
-    images: [{ url: "/logo-transparent.png", width: 512, height: 512 }],
+    siteName: "xStream",
   },
   twitter: {
-    card: "summary",
-    title: "xstream Markets",
+    card: "summary_large_image",
+    title: "xStream | Split xStocks into dx and px",
     description:
-      "Split tokenized ETFs into income and price tokens. Earn yield or trade with leverage.",
-    images: ["/logo-transparent.png"],
+      "Split tokenized equities into dividend and principal tokens on Base. dx for yield, px for session-bound price exposure.",
   },
 };
 

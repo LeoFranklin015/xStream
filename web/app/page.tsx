@@ -1,14 +1,8 @@
 "use client";
 
-import { useRef, useEffect, useState } from "react";
+import { useRef } from "react";
 import Link from "next/link";
-import {
-  motion,
-  useInView,
-  useMotionValue,
-  useTransform,
-  animate,
-} from "framer-motion";
+import { motion, useInView } from "framer-motion";
 import {
   ArrowRight,
   Vault,
@@ -18,18 +12,17 @@ import {
   BarChart3,
   Clock,
   Zap,
-  Users,
-  Activity,
   Layers,
   Target,
   Repeat,
 } from "lucide-react";
-import { Button, buttonVariants } from "@/components/ui/button";
+import { buttonVariants } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import Navbar from "@/components/navbar";
 import Footer from "@/components/footer";
 import LiquidEther from "@/components/LiquidEther";
+import HeroSplitVisual from "@/components/landing/HeroSplitVisual";
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -61,33 +54,6 @@ function Section({
   );
 }
 
-function AnimatedCounter({ value, suffix = "" }: { value: number; suffix?: string }) {
-  const ref = useRef<HTMLSpanElement>(null);
-  const inView = useInView(ref, { once: true });
-  const motionVal = useMotionValue(0);
-  const rounded = useTransform(motionVal, (v) => Math.round(v));
-  const [display, setDisplay] = useState(0);
-
-  useEffect(() => {
-    if (inView) {
-      const controls = animate(motionVal, value, { duration: 2, ease: "easeOut" });
-      return controls.stop;
-    }
-  }, [inView, motionVal, value]);
-
-  useEffect(() => {
-    const unsub = rounded.on("change", (v) => setDisplay(v));
-    return unsub;
-  }, [rounded]);
-
-  return (
-    <span ref={ref}>
-      {display.toLocaleString()}
-      {suffix}
-    </span>
-  );
-}
-
 // ---------------------------------------------------------------------------
 // Data
 // ---------------------------------------------------------------------------
@@ -95,20 +61,20 @@ function AnimatedCounter({ value, suffix = "" }: { value: number; suffix?: strin
 const steps = [
   {
     num: "01",
-    title: "Deposit xSPY",
-    desc: "Deposit your tokenized S&P 500 ETF (xSPY) into the xstream vault smart contract.",
+    title: "Deposit xStock",
+    desc: "Lock a registered xStock (for example AAPL, ABT, or SPY) in the vault. One deposit, two claims on the same underlying.",
     icon: Vault,
   },
   {
     num: "02",
-    title: "Receive Two Tokens",
-    desc: "The vault mints xdSPY (income token) and xpSPY (price token), splitting yield from price exposure.",
+    title: "Mint dx + px",
+    desc: "The vault mints matching dx (dividend rights) and px (principal). Yield accrues to dx; px tracks price for the session-bound exchange.",
     icon: Split,
   },
   {
     num: "03",
-    title: "Trade or Earn",
-    desc: "Trade each token on its dedicated market, or hold to earn predictable yield and leveraged returns.",
+    title: "Route to your market",
+    desc: "Hold or trade dx against the dividend schedule 24/7. Trade px with USDC collateral when the equity session is open. Recombine to exit.",
     icon: TrendingUp,
   },
 ];
@@ -117,34 +83,34 @@ const personas = [
   {
     icon: DollarSign,
     name: "Alice",
-    title: "Income Investor",
-    desc: "Buys xdSPY for steady dividend yield. Earns projected 12-16% APY without touching principal.",
+    title: "Income investor",
+    desc: "Wants dividend flow without riding every tick of the equity. Buys dx and lets rebases accrue to dx holders, not px.",
   },
   {
     icon: BarChart3,
     name: "Bob",
-    title: "Day Trader",
-    desc: "Trades xpSPY during NYSE hours for leveraged price moves. 2-5x exposure with no liquidation risk on the underlying.",
+    title: "Session trader",
+    desc: "Wants clean price exposure when the cash market is open, without carrying dividend mechanics on intraday px positions.",
   },
   {
     icon: Layers,
     name: "Carol",
-    title: "Yield Stripper",
-    desc: "Deposits xSPY, sells xpSPY to lock in above-market fixed yield, keeps the income stream.",
+    title: "Yield stripper",
+    desc: "Splits xStock, sells px for USDC, keeps dx to capture the dividend stream at a basis shaped by the strip.",
   },
   {
     icon: Repeat,
     name: "Dave",
     title: "Arbitrageur",
-    desc: "Exploits price dislocations between xdSPY + xpSPY and the underlying xSPY to pocket risk-free spreads.",
+    desc: "Watches dx + px versus xStock. Recombines when the bundle is cheap, splits when it is rich, keeping pools aligned.",
   },
 ];
 
 const stats = [
-  { label: "Total Value Locked", value: 48, suffix: "M", prefix: "$" },
-  { label: "24h Volume", value: 12, suffix: "M", prefix: "$" },
-  { label: "xdSPY APY", value: 14, suffix: "%", prefix: "" },
-  { label: "Active Sessions", value: 1842, suffix: "", prefix: "" },
+  { label: "Launch universe", value: "AAPL, ABT, SPY" },
+  { label: "dx market", value: "24/7" },
+  { label: "px exchange", value: "NYSE hours" },
+  { label: "Price oracle", value: "Pyth" },
 ];
 
 // ---------------------------------------------------------------------------
@@ -168,81 +134,95 @@ export default function Home() {
             autoSpeed={0.45}
           />
         </div>
-        {/* Radial fade for legibility */}
-        <div className="pointer-events-none absolute inset-0 z-[1] bg-[radial-gradient(ellipse_at_center,transparent_15%,#0a0a0a_72%)]" />
+        {/* Legibility: darken behind copy (left), keep ether visible on the right */}
+        <div
+          className="pointer-events-none absolute inset-0 z-[1] bg-[radial-gradient(ellipse_90%_120%_at_0%_40%,#0a0a0a_0%,transparent_55%),radial-gradient(ellipse_at_70%_30%,transparent_20%,#0a0a0a_75%)]"
+        />
 
-        <div className="relative z-10 mx-auto flex max-w-7xl flex-col items-center px-4 pb-24 pt-32 text-center sm:px-6 lg:px-8 lg:pt-44 lg:pb-32">
-          {/* Floating badges */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2, duration: 0.6 }}
-            className="mb-8 flex gap-3"
-          >
-            <Badge
-              variant="outline"
-              className="border-[#c8ff00]/30 bg-[#c8ff00]/5 text-[#c8ff00] px-3 py-1"
+        <div className="relative z-10 mx-auto grid max-w-7xl grid-cols-1 items-center gap-12 px-4 pb-16 pt-28 sm:px-6 lg:grid-cols-2 lg:gap-10 lg:px-8 lg:pt-36 lg:pb-24">
+          <div className="flex flex-col text-center lg:text-left">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2, duration: 0.6 }}
+              className="mb-6 flex flex-wrap justify-center gap-2 sm:gap-3 lg:justify-start"
             >
-              xdSPY -- Income
-            </Badge>
-            <Badge
-              variant="outline"
-              className="border-[#c8ff00]/30 bg-[#c8ff00]/5 text-[#c8ff00] px-3 py-1"
+              <Badge
+                variant="outline"
+                className="border-[#c8ff00]/30 bg-[#c8ff00]/5 px-3 py-1 font-mono text-[#c8ff00]"
+              >
+                dx = dividend rights
+              </Badge>
+              <Badge
+                variant="outline"
+                className="border-white/15 bg-white/[0.03] px-3 py-1 font-mono text-muted-foreground"
+              >
+                px = principal / price
+              </Badge>
+              <Badge
+                variant="outline"
+                className="border-white/15 bg-white/[0.03] px-3 py-1 text-xs text-muted-foreground"
+              >
+                Base + Pyth
+              </Badge>
+            </motion.div>
+
+            <motion.h1
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3, duration: 0.7 }}
+              className="font-[family-name:var(--font-safira)] text-4xl leading-[1.08] tracking-tight  md:text-6xl"
             >
-              xpSPY -- Price
-            </Badge>
-          </motion.div>
+              <span className="text-[#c8ff00] glow-lime-text">yield </span>
+              tokenization for capital efficiency
+            </motion.h1>
 
-          <motion.h1
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3, duration: 0.7 }}
-            className="font-[family-name:var(--font-safira)] text-5xl leading-tight tracking-tight sm:text-7xl lg:text-8xl"
-          >
-            Split. Trade.{" "}
-            <span className="text-[#c8ff00] glow-lime-text">Earn.</span>
-          </motion.h1>
-
-          <motion.p
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.5, duration: 0.6 }}
-            className="mt-4 text-lg font-medium text-muted-foreground sm:text-xl"
-          >
-            Two tokens. Two markets. One vault.
-          </motion.p>
-
-          <motion.p
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.6, duration: 0.6 }}
-            className="mt-4 max-w-2xl text-base leading-relaxed text-muted-foreground"
-          >
-            xstream splits tokenized ETFs into income tokens and price tokens,
-            unlocking predictable yield and clean leveraged exposure -- all
-            on-chain, all composable.
-          </motion.p>
-
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.8, duration: 0.6 }}
-            className="mt-10 flex flex-wrap items-center justify-center gap-4"
-          >
-            <Link
-              href="/app"
-              className={buttonVariants({ size: "lg", className: "bg-[#c8ff00] text-[#0a0a0a] hover:bg-[#c8ff00]/80 font-semibold px-6" })}
+            <motion.p
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.45, duration: 0.6 }}
+              className="mt-5 max-w-xl text-lg font-medium leading-snug text-muted-foreground sm:text-xl lg:max-w-lg"
             >
-              Launch App
-              <ArrowRight className="ml-1 size-4" />
-            </Link>
-            <Link
-              href="https://docs.xstream.io"
-              className={buttonVariants({ variant: "outline", size: "lg" })}
+              One ERC-20 becomes two: dx accrues dividends from rebases; px is
+              your levered, session-bound handle on spot. Trade them separately,
+              then burn both to redeem the underlying.
+            </motion.p>
+
+            <motion.p
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.55, duration: 0.6 }}
+              className="mt-4 max-w-xl text-sm leading-relaxed text-muted-foreground/90 sm:text-base"
             >
-              Read Docs
-            </Link>
-          </motion.div>
+              Built for tokenized equities like AAPL, ABT, and SPY xStocks --
+              not a wrapped CEX IOU, not a synthetic from thin air.
+            </motion.p>
+
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.7, duration: 0.6 }}
+              className="mt-10 flex flex-wrap items-center justify-center gap-4 lg:justify-start"
+            >
+              <Link
+                href="/app"
+                className={buttonVariants({ size: "lg", className: "bg-[#c8ff00] text-[#0a0a0a] hover:bg-[#c8ff00]/80 font-semibold px-6" })}
+              >
+                Open app
+                <ArrowRight className="ml-1 size-4" />
+              </Link>
+              <Link
+                href="/docs"
+                className={buttonVariants({ variant: "outline", size: "lg" })}
+              >
+                Protocol docs
+              </Link>
+            </motion.div>
+          </div>
+
+          <div className="flex w-full justify-center lg:justify-end lg:pl-4">
+            <HeroSplitVisual />
+          </div>
         </div>
       </section>
 
@@ -255,7 +235,7 @@ export default function Home() {
             How It Works
           </Badge>
           <h2 className="font-[family-name:var(--font-safira)] text-3xl sm:text-4xl">
-            Three steps to split
+            From one xStock to two tokens
           </h2>
         </div>
 
@@ -301,7 +281,7 @@ export default function Home() {
             Token Architecture
           </Badge>
           <h2 className="font-[family-name:var(--font-safira)] text-3xl sm:text-4xl">
-            Two tokens, two strategies
+            Two tokens, two liquidity regimes
           </h2>
         </div>
 
@@ -320,27 +300,28 @@ export default function Home() {
                     <DollarSign className="size-5 text-[#c8ff00]" />
                   </div>
                   <div>
-                    <Badge variant="outline" className="text-xs">
-                      xdSPY
+                    <Badge variant="outline" className="text-xs font-mono">
+                      dx
                     </Badge>
                   </div>
                 </div>
-                <CardTitle className="mt-3 text-xl">Income Token</CardTitle>
+                <CardTitle className="mt-3 text-xl">Dividend token (dx)</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <p className="text-sm leading-relaxed text-muted-foreground">
-                  Captures all dividend distributions from the underlying ETF.
-                  Trade 24/7 on the xstream income market with deep liquidity.
+                  Rebases flow through the vault into dx via an accumulator: px
+                  balances do not eat the dividend. Secondary liquidity prices
+                  dx against the known schedule and the recombination floor.
                 </p>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="rounded-lg bg-muted/50 p-3">
-                    <p className="text-xs text-muted-foreground">Projected APY</p>
+                    <p className="text-xs text-muted-foreground">Yield</p>
                     <p className="mt-1 text-lg font-semibold text-[#c8ff00]">
-                      12-16%
+                      Rebase-linked
                     </p>
                   </div>
                   <div className="rounded-lg bg-muted/50 p-3">
-                    <p className="text-xs text-muted-foreground">Trading</p>
+                    <p className="text-xs text-muted-foreground">Liquidity</p>
                     <p className="mt-1 text-lg font-semibold">24/7</p>
                   </div>
                 </div>
@@ -370,28 +351,30 @@ export default function Home() {
                     <TrendingUp className="size-5 text-[#c8ff00]" />
                   </div>
                   <div>
-                    <Badge variant="outline" className="text-xs">
-                      xpSPY
+                    <Badge variant="outline" className="text-xs font-mono">
+                      px
                     </Badge>
                   </div>
                 </div>
-                <CardTitle className="mt-3 text-xl">Price Token</CardTitle>
+                <CardTitle className="mt-3 text-xl">Principal token (px)</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <p className="text-sm leading-relaxed text-muted-foreground">
-                  Pure price exposure to the S&P 500, stripped of dividends.
-                  Trade during NYSE hours with built-in leveraged returns.
+                  px is the levered, session-gated leg: long or short against
+                  USDC while the equity session is open, with Pyth marking spot.
+                  Positions are not perpetuals; they roll with the protocol&apos;s
+                  daily cadence.
                 </p>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="rounded-lg bg-muted/50 p-3">
-                    <p className="text-xs text-muted-foreground">Leverage</p>
+                    <p className="text-xs text-muted-foreground">Exposure</p>
                     <p className="mt-1 text-lg font-semibold text-[#c8ff00]">
-                      2-5x
+                      Leveraged spot
                     </p>
                   </div>
                   <div className="rounded-lg bg-muted/50 p-3">
-                    <p className="text-xs text-muted-foreground">Trading</p>
-                    <p className="mt-1 text-lg font-semibold">NYSE Hours</p>
+                    <p className="text-xs text-muted-foreground">Session</p>
+                    <p className="mt-1 text-lg font-semibold">NYSE</p>
                   </div>
                 </div>
                 <div className="flex flex-wrap gap-2">
@@ -440,7 +423,7 @@ export default function Home() {
                     <CardTitle className="mt-2">
                       {p.name}{" "}
                       <span className="text-muted-foreground font-normal">
-                        -- {p.title}
+                        ({p.title})
                       </span>
                     </CardTitle>
                   </CardHeader>
@@ -457,22 +440,21 @@ export default function Home() {
       </Section>
 
       {/* ----------------------------------------------------------------- */}
-      {/* Live Stats                                                        */}
+      {/* Protocol facts                                                    */}
       {/* ----------------------------------------------------------------- */}
       <Section className="border-y border-border bg-card/30">
         <div className="mx-auto grid max-w-7xl grid-cols-2 gap-8 px-4 py-20 sm:px-6 md:grid-cols-4 lg:px-8">
           {stats.map((s, i) => (
             <motion.div
               key={s.label}
-              initial={{ opacity: 0, scale: 0.9 }}
+              initial={{ opacity: 0, scale: 0.97 }}
               whileInView={{ opacity: 1, scale: 1 }}
               viewport={{ once: true }}
               transition={{ delay: i * 0.1, duration: 0.5 }}
               className="text-center"
             >
-              <p className="font-[family-name:var(--font-safira)] text-3xl sm:text-4xl text-foreground">
-                {s.prefix}
-                <AnimatedCounter value={s.value} suffix={s.suffix} />
+              <p className="font-[family-name:var(--font-safira)] text-xl leading-tight text-foreground sm:text-2xl">
+                {s.value}
               </p>
               <p className="mt-2 text-sm text-muted-foreground">{s.label}</p>
             </motion.div>
@@ -487,18 +469,19 @@ export default function Home() {
         <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_30%,#0a0a0a_70%)]" />
         <div className="relative mx-auto flex max-w-3xl flex-col items-center px-4 py-32 text-center sm:px-6 lg:px-8">
           <h2 className="font-[family-name:var(--font-safira)] text-4xl sm:text-5xl">
-            Ready to{" "}
-            <span className="text-[#c8ff00] glow-lime-text">split?</span>
+            Route yield and price{" "}
+            <span className="text-[#c8ff00] glow-lime-text">your way</span>
           </h2>
           <p className="mt-4 text-base text-muted-foreground">
-            Start splitting tokenized ETFs into income and price tokens today.
+            Explore the vault, markets, and docs. Mainnet rollout follows the
+            roadmap in the PRD.
           </p>
           <div className="mt-10">
             <Link
               href="/app"
               className={buttonVariants({ size: "lg", className: "bg-[#c8ff00] text-[#0a0a0a] hover:bg-[#c8ff00]/80 font-semibold px-8" })}
             >
-              Launch App
+              Open app
               <ArrowRight className="ml-1 size-4" />
             </Link>
           </div>

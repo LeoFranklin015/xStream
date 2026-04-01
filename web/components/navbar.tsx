@@ -18,7 +18,8 @@ const navLinks = [
   { label: "Markets", href: "/app/markets" },
   { label: "Vault", href: "/app/vault" },
   { label: "Portfolio", href: "/app/portfolio" },
-  { label: "Docs", href: "https://docs.xstream.io", external: true },
+  { label: "Pitch", href: "/pitch" },
+  { label: "Docs", href: "/docs" },
 ];
 
 export default function Navbar() {
@@ -53,9 +54,6 @@ export default function Navbar() {
             <Link
               key={link.label}
               href={link.href}
-              {...(link.external
-                ? { target: "_blank", rel: "noopener noreferrer" }
-                : {})}
               className="rounded-lg px-3 py-2 text-sm text-muted-foreground transition-colors hover:text-foreground"
             >
               {link.label}
@@ -113,9 +111,6 @@ export default function Navbar() {
                   <Link
                     key={link.label}
                     href={link.href}
-                    {...(link.external
-                      ? { target: "_blank", rel: "noopener noreferrer" }
-                      : {})}
                     onClick={() => setOpen(false)}
                     className="rounded-lg px-3 py-2.5 text-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
                   >

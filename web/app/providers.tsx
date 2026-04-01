@@ -3,6 +3,7 @@
 import { PrivyProvider } from "@privy-io/react-auth";
 import { ReactLenis } from "lenis/react";
 import { usePathname } from "next/navigation";
+import LenisMotionRaf from "@/components/landing/LenisMotionRaf";
 
 function SmoothScroll({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -16,7 +17,16 @@ function SmoothScroll({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <ReactLenis root options={{ lerp: 0.1, duration: 1.2, smoothWheel: true }}>
+    <ReactLenis
+      root
+      options={{
+        lerp: 0.1,
+        duration: 1.2,
+        smoothWheel: true,
+        autoRaf: false,
+      }}
+    >
+      <LenisMotionRaf />
       {children}
     </ReactLenis>
   );
