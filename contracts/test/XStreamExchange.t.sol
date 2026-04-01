@@ -342,6 +342,32 @@ contract XStreamExchangeTest is Test {
         assertEq(pos.trader, address(0));
     }
 
+    function test_LiquidateByIndex() public {
+        vm.warp(block.timestamp);
+
+        (bytes[] memory updates, uint256 fee) = _createPriceUpdate(int64(21342));
+
+        vm.prank(trader);
+        bytes32 positionId = exchange.openLong{value: fee}(
+            address(pxToken), 1000e6, 5e18, updates
+        );
+
+        vm.warp(block.timestamp + 1);
+        (bytes[] memory liqUpdates, uint256 liqFee) = _createPriceUpdate(int64(5000));
+
+        address liquidator = makeAddr("liquidator");
+        vm.deal(liquidator, 10 ether);
+
+        vm.prank(liquidator);
+        uint256 keeperReward = exchange.liquidateByIndex{value: liqFee}(address(pxToken), 0, liqUpdates);
+
+        assertEq(keeperReward, 0);
+        assertEq(exchange.getOpenPositionCount(address(pxToken)), 0);
+
+        XStreamExchange.Position memory pos = exchange.getPosition(positionId);
+        assertEq(pos.trader, address(0));
+    }
+
     function test_Liquidate_RevertNotLiquidatable() public {
         vm.warp(block.timestamp);
 

@@ -264,6 +264,21 @@ contract XStreamExchange is Ownable, ReentrancyGuard {
         bytes32 positionId,
         bytes[] calldata pythUpdateData
     ) external payable nonReentrant returns (uint256 keeperReward) {
+        keeperReward = _liquidate(positionId, pythUpdateData);
+    }
+
+    function liquidateByIndex(
+        address pxToken,
+        uint256 index,
+        bytes[] calldata pythUpdateData
+    ) external payable nonReentrant returns (uint256 keeperReward) {
+        keeperReward = _liquidate(openPositionIds[pxToken][index], pythUpdateData);
+    }
+
+    function _liquidate(
+        bytes32 positionId,
+        bytes[] calldata pythUpdateData
+    ) internal returns (uint256 keeperReward) {
         Position storage pos = positions[positionId];
         if (pos.trader == address(0)) revert NotPositionOwner();
 

@@ -94,8 +94,6 @@ contract DayTradingTest is Test {
     bytes32 charlieLongPosId;
     bytes32 bobRiskyPosId;
 
-    // Monotonic publishTime offset so MockPyth accepts successive updates
-    uint64 priceSeq;
 
     // =========================================================================
     // Setup
@@ -174,7 +172,7 @@ contract DayTradingTest is Test {
         vm.warp(T_ALICE_LONG);
         console.log("\n--- 10:00 Alice opens 3x long xAAPL @ $213.42 ---");
 
-        (bytes[] memory u, uint256 f) = _priceUpdate(AAPL_FEED, 21342);
+        (bytes[] memory u, uint256 f) = _priceUpdate(AAPL_FEED, 21342, uint64(block.timestamp));
         vm.startPrank(alice);
         aliceLongPosId = exchange.openLong{value: f}(pxAAPL, 5_000e6, 3e18, u);
         vm.stopPrank();
@@ -191,7 +189,7 @@ contract DayTradingTest is Test {
         vm.warp(T_BOB_SHORT);
         console.log("\n--- 10:30 Bob opens 2x short xSPY @ $587.50 ---");
 
-        (u, f) = _priceUpdate(SPY_FEED, 58750);
+        (u, f) = _priceUpdate(SPY_FEED, 58750, uint64(block.timestamp));
         vm.startPrank(bob);
         bobShortPosId = exchange.openShort{value: f}(pxSPY, 4_000e6, 2e18, u);
         vm.stopPrank();
@@ -206,7 +204,7 @@ contract DayTradingTest is Test {
         vm.warp(T_CHARLIE);
         console.log("\n--- 11:00 Charlie opens 3x long xSPY @ $587.50 ---");
 
-        (u, f) = _priceUpdate(SPY_FEED, 58750);
+        (u, f) = _priceUpdate(SPY_FEED, 58750, uint64(block.timestamp));
         vm.startPrank(charlie);
         charlieLongPosId = exchange.openLong{value: f}(pxSPY, 3_000e6, 3e18, u);
         vm.stopPrank();
@@ -299,7 +297,7 @@ contract DayTradingTest is Test {
         console.log("\n--- 14:00 Alice closes 3x long xAAPL @ $220 (+3.1%) ---");
 
         uint256 usdcBefore = usdc.balanceOf(alice);
-        (bytes[] memory u, uint256 f) = _priceUpdate(AAPL_FEED, 22000);
+        (bytes[] memory u, uint256 f) = _priceUpdate(AAPL_FEED, 22000, uint64(block.timestamp));
         vm.startPrank(alice);
         int256 pnl = exchange.closeLong{value: f}(aliceLongPosId, u);
         vm.stopPrank();
@@ -320,7 +318,7 @@ contract DayTradingTest is Test {
         vm.warp(T_BOB_LIQ);
         console.log("\n--- 14:30 Bob opens 5x long xAAPL @ $220 (risky) ---");
 
-        (u, f) = _priceUpdate(AAPL_FEED, 22000);
+        (u, f) = _priceUpdate(AAPL_FEED, 22000, uint64(block.timestamp));
         vm.startPrank(bob);
         bobRiskyPosId = exchange.openLong{value: f}(pxAAPL, 2_000e6, 5e18, u);
         vm.stopPrank();
@@ -346,7 +344,7 @@ contract DayTradingTest is Test {
         uint256 liqBefore = usdc.balanceOf(liquidatorBot);
 
         // Crash price update: publishTime must strictly exceed any prior update
-        (bytes[] memory u, uint256 f) = _priceUpdate(AAPL_FEED, 18000);
+        (bytes[] memory u, uint256 f) = _priceUpdate(AAPL_FEED, 18000, uint64(block.timestamp));
 
         // Verify the position IS liquidatable before calling liquidate
         // loss = notional * (1 - exitPrice/entryPrice) = $10k * (40/220) = ~$1818.18
@@ -432,7 +430,7 @@ contract DayTradingTest is Test {
         uint256 bobUsdcBefore     = usdc.balanceOf(bob);
         uint256 charlieUsdcBefore = usdc.balanceOf(charlie);
 
-        (bytes[] memory u, uint256 f) = _priceUpdate(SPY_FEED, 57200);
+        (bytes[] memory u, uint256 f) = _priceUpdate(SPY_FEED, 57200, uint64(block.timestamp));
         address[] memory pxTokens = new address[](1);
         pxTokens[0] = pxSPY;
 
@@ -607,16 +605,14 @@ contract DayTradingTest is Test {
     // =========================================================================
 
     /// @dev Single-feed Pyth price update.
-    ///      publishTime = block.timestamp + priceSeq ensures MockPyth
-    ///      always accepts the update (its rule: publishTime > storedPublishTime).
-    function _priceUpdate(bytes32 feedId, int64 price)
+    ///      Caller passes timestamp explicitly to work around via_ir caching.
+    function _priceUpdate(bytes32 feedId, int64 price, uint64 ts)
         internal
+        view
         returns (bytes[] memory updates, uint256 fee)
     {
-        uint64 publishTime = uint64(block.timestamp) + priceSeq;
-        priceSeq++;
         bytes memory data = mockPyth.createPriceFeedUpdateData(
-            feedId, price, uint64(100), int32(-2), price, uint64(100), publishTime
+            feedId, price, uint64(100), int32(-2), price, uint64(100), ts
         );
         updates    = new bytes[](1);
         updates[0] = data;

@@ -127,8 +127,11 @@ contract LifecycleTest is Script {
 
         vm.startBroadcast(PK_DEPLOYER);
 
-        mockPyth    = new MockPyth(60, 1);                          // 60 s validity, 1 wei/update
-        pythAdapter = new PythAdapter(address(mockPyth), 60);
+        // In broadcast mode, Foundry simulates first and submits later. Use a wider
+        // staleness window so live execution does not reject otherwise-valid mock
+        // updates that were timestamped during the simulation pass.
+        mockPyth    = new MockPyth(3600, 1);
+        pythAdapter = new PythAdapter(address(mockPyth), 3600);
         usdc        = new MockUSDC();
         xAAPL       = new MockXStock("Dinari xAAPL", "xAAPL");
         xSPY        = new MockXStock("Dinari xSPY",  "xSPY");
@@ -364,10 +367,10 @@ contract LifecycleTest is Script {
         vm.stopBroadcast();
         console.log("  Bob: 5x LONG xAAPL @ $220 | $2k collateral");
 
-        // Read the position ID from live contract state (index 0 since no other AAPL
-        // positions are open at this point in the lifecycle).
-        bytes32 bobLiqPos = exchange.openPositionIds(pxAAPL, 0);
-        console.log("  Position ID captured from contract state");
+        // In broadcast mode, values read in-script come from Foundry's simulation pass,
+        // not from the live chain after each tx is mined. Liquidate by live array index
+        // so the exchange resolves the current on-chain position ID internally.
+        console.log("  Position will be liquidated via live open-position index 0");
 
         // Price crashes to $180: loss=$1,818 / $1,995 = 91.1% > 80% threshold
         (bytes[] memory crashUpdates, uint256 crashFee) = _priceUpdate(AAPL_FEED, 18000);
@@ -375,12 +378,11 @@ contract LifecycleTest is Script {
 
         uint256 liqBefore = usdc.balanceOf(liquidatorBot);
         vm.startBroadcast(PK_LIQUIDATOR);
-        exchange.liquidate{value: crashFee}(bobLiqPos, crashUpdates);
+        exchange.liquidateByIndex{value: crashFee}(pxAAPL, 0, crashUpdates);
         vm.stopBroadcast();
         console.log("  Liquidated! Keeper reward USDC (6 dec):", usdc.balanceOf(liquidatorBot) - liqBefore);
 
-        XStreamExchange.Position memory pos = exchange.getPosition(bobLiqPos);
-        require(pos.trader == address(0), "INVARIANT: position must be deleted after liquidation");
+        require(exchange.getOpenPositionCount(pxAAPL) == 0, "INVARIANT: xAAPL position must be deleted after liquidation");
         console.log("  Position deleted: VERIFIED");
 
         // Close the market (no open positions remain after liquidation)
