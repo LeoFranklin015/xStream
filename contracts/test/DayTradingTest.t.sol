@@ -94,6 +94,9 @@ contract DayTradingTest is Test {
     bytes32 charlieLongPosId;
     bytes32 bobRiskyPosId;
 
+    // Stored timestamp to work around via_ir caching block.timestamp
+    uint64 currentTs;
+
 
     // =========================================================================
     // Setup
@@ -118,6 +121,7 @@ contract DayTradingTest is Test {
 
         // Start at day-open so vm.warp in tests is relative to a known base
         vm.warp(DAY_START);
+        currentTs = uint64(DAY_START);
 
         _deployContracts();
         _seedBalances();
@@ -148,7 +152,7 @@ contract DayTradingTest is Test {
     // =========================================================================
 
     function _openMarket() internal {
-        vm.warp(T_OPEN);
+        _warp(T_OPEN);
         console.log("\n--- 09:30 MARKET OPEN ---");
 
         vm.startPrank(keeperBot);
@@ -169,10 +173,10 @@ contract DayTradingTest is Test {
 
     function _morningTrading() internal {
         // ---- 10:00 Alice opens 3x long xAAPL ----
-        vm.warp(T_ALICE_LONG);
+        _warp(T_ALICE_LONG);
         console.log("\n--- 10:00 Alice opens 3x long xAAPL @ $213.42 ---");
 
-        (bytes[] memory u, uint256 f) = _priceUpdate(AAPL_FEED, 21342, uint64(block.timestamp));
+        (bytes[] memory u, uint256 f) = _priceUpdate(AAPL_FEED, 21342);
         vm.startPrank(alice);
         aliceLongPosId = exchange.openLong{value: f}(pxAAPL, 5_000e6, 3e18, u);
         vm.stopPrank();
@@ -186,10 +190,10 @@ contract DayTradingTest is Test {
         assertTrue(ap.isLong);
 
         // ---- 10:30 Bob opens 2x short xSPY ----
-        vm.warp(T_BOB_SHORT);
+        _warp(T_BOB_SHORT);
         console.log("\n--- 10:30 Bob opens 2x short xSPY @ $587.50 ---");
 
-        (u, f) = _priceUpdate(SPY_FEED, 58750, uint64(block.timestamp));
+        (u, f) = _priceUpdate(SPY_FEED, 58750);
         vm.startPrank(bob);
         bobShortPosId = exchange.openShort{value: f}(pxSPY, 4_000e6, 2e18, u);
         vm.stopPrank();
@@ -201,10 +205,10 @@ contract DayTradingTest is Test {
         assertFalse(bp.isLong);
 
         // ---- 11:00 Charlie opens 3x long xSPY ----
-        vm.warp(T_CHARLIE);
+        _warp(T_CHARLIE);
         console.log("\n--- 11:00 Charlie opens 3x long xSPY @ $587.50 ---");
 
-        (u, f) = _priceUpdate(SPY_FEED, 58750, uint64(block.timestamp));
+        (u, f) = _priceUpdate(SPY_FEED, 58750);
         vm.startPrank(charlie);
         charlieLongPosId = exchange.openLong{value: f}(pxSPY, 3_000e6, 3e18, u);
         vm.stopPrank();
@@ -233,7 +237,7 @@ contract DayTradingTest is Test {
     // =========================================================================
 
     function _dividendEvent() internal {
-        vm.warp(T_DIVIDEND);
+        _warp(T_DIVIDEND);
         console.log("\n--- 13:00 DIVIDEND EVENT: xAAPL rebase +0.2% ---");
 
         // Current state before rebase
@@ -278,7 +282,7 @@ contract DayTradingTest is Test {
 
     function _afternoonTrading() internal {
         // ---- 13:30 Alice claims dividend ----
-        vm.warp(T_CLAIM_DIV);
+        _warp(T_CLAIM_DIV);
         console.log("\n--- 13:30 Alice claims xAAPL dividend ---");
 
         uint256 xAaplBefore = xAAPL.balanceOf(alice);
@@ -293,11 +297,11 @@ contract DayTradingTest is Test {
         assertEq(vault.pendingDividend(address(xAAPL), alice), 0, "No pending after claim");
 
         // ---- 14:00 Alice closes her 3x long xAAPL @ $220 ----
-        vm.warp(T_ALICE_CLOSE);
+        _warp(T_ALICE_CLOSE);
         console.log("\n--- 14:00 Alice closes 3x long xAAPL @ $220 (+3.1%) ---");
 
         uint256 usdcBefore = usdc.balanceOf(alice);
-        (bytes[] memory u, uint256 f) = _priceUpdate(AAPL_FEED, 22000, uint64(block.timestamp));
+        (bytes[] memory u, uint256 f) = _priceUpdate(AAPL_FEED, 22000);
         vm.startPrank(alice);
         int256 pnl = exchange.closeLong{value: f}(aliceLongPosId, u);
         vm.stopPrank();
@@ -315,10 +319,10 @@ contract DayTradingTest is Test {
         assertEq(exchange.getOpenPositionCount(pxAAPL), 0, "No xAAPL positions remaining");
 
         // ---- 14:30 Bob opens a new risky 5x long xAAPL @ $220 ----
-        vm.warp(T_BOB_LIQ);
+        _warp(T_BOB_LIQ);
         console.log("\n--- 14:30 Bob opens 5x long xAAPL @ $220 (risky) ---");
 
-        (u, f) = _priceUpdate(AAPL_FEED, 22000, uint64(block.timestamp));
+        (u, f) = _priceUpdate(AAPL_FEED, 22000);
         vm.startPrank(bob);
         bobRiskyPosId = exchange.openLong{value: f}(pxAAPL, 2_000e6, 5e18, u);
         vm.stopPrank();
@@ -338,13 +342,13 @@ contract DayTradingTest is Test {
     // =========================================================================
 
     function _liquidation() internal {
-        vm.warp(T_CRASH);
+        _warp(T_CRASH);
         console.log("\n--- 15:00 CRASH: xAAPL $220 -> $180 (-18.2%) ---");
 
         uint256 liqBefore = usdc.balanceOf(liquidatorBot);
 
         // Crash price update: publishTime must strictly exceed any prior update
-        (bytes[] memory u, uint256 f) = _priceUpdate(AAPL_FEED, 18000, uint64(block.timestamp));
+        (bytes[] memory u, uint256 f) = _priceUpdate(AAPL_FEED, 18000);
 
         // Verify the position IS liquidatable before calling liquidate
         // loss = notional * (1 - exitPrice/entryPrice) = $10k * (40/220) = ~$1818.18
@@ -390,7 +394,7 @@ contract DayTradingTest is Test {
     // =========================================================================
 
     function _dividendClaims() internal {
-        vm.warp(T_BOB_CLAIM);
+        _warp(T_BOB_CLAIM);
         console.log("\n--- 15:30 Bob claims xAAPL dividend ---");
 
         uint256 pendingBob = vault.pendingDividend(address(xAAPL), bob);
@@ -419,7 +423,7 @@ contract DayTradingTest is Test {
     // =========================================================================
 
     function _endOfDaySettlementAuction() internal {
-        vm.warp(T_EOD);
+        _warp(T_EOD);
         console.log("\n--- 16:00 END-OF-DAY SETTLEMENT AUCTION ---");
         console.log("  Closing price: xSPY @ $572 (down 2.6% from open @ $587.50)");
 
@@ -430,7 +434,7 @@ contract DayTradingTest is Test {
         uint256 bobUsdcBefore     = usdc.balanceOf(bob);
         uint256 charlieUsdcBefore = usdc.balanceOf(charlie);
 
-        (bytes[] memory u, uint256 f) = _priceUpdate(SPY_FEED, 57200, uint64(block.timestamp));
+        (bytes[] memory u, uint256 f) = _priceUpdate(SPY_FEED, 57200);
         address[] memory pxTokens = new address[](1);
         pxTokens[0] = pxSPY;
 
@@ -471,7 +475,7 @@ contract DayTradingTest is Test {
     // =========================================================================
 
     function _lpWithdrawal() internal {
-        vm.warp(T_SETTLE);
+        _warp(T_SETTLE);
         console.log("\n--- 16:05 LP WITHDRAWAL & DAY SUMMARY ---");
 
         XStreamExchange.PoolConfig memory aaplPool = exchange.getPoolConfig(pxAAPL);
@@ -604,15 +608,21 @@ contract DayTradingTest is Test {
     // Helpers
     // =========================================================================
 
+    /// @dev Warp time and store timestamp in state to defeat via_ir caching.
+    function _warp(uint256 ts) internal {
+        vm.warp(ts);
+        currentTs = uint64(ts);
+    }
+
     /// @dev Single-feed Pyth price update.
-    ///      Caller passes timestamp explicitly to work around via_ir caching.
-    function _priceUpdate(bytes32 feedId, int64 price, uint64 ts)
+    ///      Uses stored currentTs to avoid via_ir block.timestamp caching.
+    function _priceUpdate(bytes32 feedId, int64 price)
         internal
         view
         returns (bytes[] memory updates, uint256 fee)
     {
         bytes memory data = mockPyth.createPriceFeedUpdateData(
-            feedId, price, uint64(100), int32(-2), price, uint64(100), ts
+            feedId, price, uint64(100), int32(-2), price, uint64(100), currentTs
         );
         updates    = new bytes[](1);
         updates[0] = data;
