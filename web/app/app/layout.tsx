@@ -42,6 +42,10 @@ import { MarketTickerMarquee } from "@/components/MarketTickerMarquee";
 import TermsGate from "@/components/TermsGate";
 import { type Network } from "@/components/NetworkSelector";
 import { ModeProvider, useAppMode } from "@/lib/mode-context";
+import {
+  ContractModeProvider,
+  useContractMode,
+} from "@/lib/contract-mode-context";
 
 // ---- Network config (mirrors NetworkSelector but owned here for chain switching) ----
 
@@ -142,6 +146,39 @@ function ModeToggle() {
           }`}
       >
         Simple
+      </span>
+    </div>
+  );
+}
+
+// ---- Contract mode toggle (Prod / Mock) ----
+
+function ContractModeToggle() {
+  const { contractMode, toggleContractMode, isMock } = useContractMode();
+
+  return (
+    <div
+      onClick={toggleContractMode}
+      className="relative flex items-center h-8 rounded-full bg-[#eee] border border-black/[0.07] cursor-pointer select-none overflow-hidden"
+    >
+      <motion.div
+        className="absolute top-[2px] bottom-[2px] w-[calc(50%-4px)] rounded-full bg-white border border-black/[0.10] shadow-sm"
+        animate={{ left: isMock ? "calc(50% + 2px)" : "2px" }}
+        transition={{ type: "spring", stiffness: 380, damping: 30 }}
+      />
+      <span
+        className={`relative z-10 flex-1 text-center text-[10px] font-medium transition-colors duration-200 ${
+          !isMock ? "text-green-600" : "text-black/30"
+        }`}
+      >
+        Prod
+      </span>
+      <span
+        className={`relative z-10 flex-1 text-center text-[10px] font-medium transition-colors duration-200 ${
+          isMock ? "text-orange-600" : "text-black/30"
+        }`}
+      >
+        Mock
       </span>
     </div>
   );
@@ -287,6 +324,13 @@ function SidebarContent({
       {/* Mode toggle */}
       <div className="px-3 pt-3 pb-1">
         <ModeToggle />
+      </div>
+      <Separator className="mx-4 w-auto opacity-40 mt-2" />
+
+      {/* Contract mode toggle */}
+      <div className="px-3 pt-2 pb-1">
+        <p className="text-[10px] text-muted-foreground mb-1 px-1">Contracts</p>
+        <ContractModeToggle />
       </div>
       <Separator className="mx-4 w-auto opacity-40 mt-2" />
 
@@ -439,7 +483,9 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   return (
     <TermsGate>
       <ModeProvider>
-        <AppLayoutInner>{children}</AppLayoutInner>
+        <ContractModeProvider>
+          <AppLayoutInner>{children}</AppLayoutInner>
+        </ContractModeProvider>
       </ModeProvider>
     </TermsGate>
   );
