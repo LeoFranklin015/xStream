@@ -27,12 +27,8 @@ import { cn } from "@/lib/utils";
 import { useAppMode } from "@/lib/mode-context";
 import { usePrivy, useWallets } from "@privy-io/react-auth";
 import { xStockAssets, type Asset } from "@/lib/market-data";
-import {
-  LiveVaultBalance,
-  DEMO_VAULT_PRINCIPAL,
-  DEMO_VAULT_APY_ANNUAL,
-} from "@/components/LiveVaultBalance";
 import { useVault } from "@/lib/contracts/useVault";
+import { usePythPrices } from "@/lib/use-pyth-prices";
 
 const fadeUp = {
   initial: { opacity: 0, y: 12 },
@@ -41,42 +37,41 @@ const fadeUp = {
 
 type VaultMode = "deposit" | "withdraw";
 
-type VaultStat =
-  | {
-    kind: "live";
-    label: string;
-    principal: number;
-    apyAnnual: number;
-    icon: typeof Lock;
-    change: string;
-    positive: boolean;
-  }
-  | {
-    kind: "static";
-    label: string;
-    value: string;
-    icon: typeof Gift | typeof Percent | typeof DollarSign;
-    change: string;
-    positive: boolean;
-    isBadge?: boolean;
-  };
+type VaultStat = {
+  label: string;
+  value: string;
+  icon: typeof Lock | typeof Gift | typeof Percent | typeof DollarSign;
+  change: string;
+  positive: boolean;
+  isBadge?: boolean;
+};
 
-function buildVaultStats(pendingDiv: string): VaultStat[] {
-  const divDisplay = parseFloat(pendingDiv) > 0
-    ? parseFloat(pendingDiv).toFixed(4)
-    : "0.00";
+function formatUsd(n: number): string {
+  return "$" + n.toLocaleString("en-US", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
+}
+
+function buildVaultStats(
+  vaultBalanceUsd: number,
+  pendingDiv: string,
+  dxBalance: string,
+): VaultStat[] {
+  const divNum = parseFloat(pendingDiv);
+  const divDisplay = divNum > 0 ? divNum.toFixed(4) : "0.00";
+  const dxNum = parseFloat(dxBalance);
+  const rewardPerShare = dxNum > 0 ? (divNum / dxNum) : 0;
   return [
     {
-      kind: "live",
       label: "Vault Balance",
-      principal: DEMO_VAULT_PRINCIPAL,
-      apyAnnual: DEMO_VAULT_APY_ANNUAL,
+      value: formatUsd(vaultBalanceUsd),
       icon: Lock,
-      change: "+5.2%",
+      change: dxNum > 0 ? `${parseFloat(dxBalance).toFixed(2)} tokens` : "--",
       positive: true,
+      isBadge: true,
     },
     {
-      kind: "static",
       label: "Claimable Rewards",
       value: divDisplay,
       icon: Gift,
@@ -85,7 +80,6 @@ function buildVaultStats(pendingDiv: string): VaultStat[] {
       isBadge: true,
     },
     {
-      kind: "static",
       label: "Vault APY",
       value: "4.82%",
       icon: Percent,
@@ -93,11 +87,10 @@ function buildVaultStats(pendingDiv: string): VaultStat[] {
       positive: true,
     },
     {
-      kind: "static",
       label: "Reward / Share",
-      value: "0.0234",
+      value: rewardPerShare > 0 ? rewardPerShare.toFixed(6) : "0.0000",
       icon: DollarSign,
-      change: "USDC",
+      change: "xStock",
       positive: true,
       isBadge: true,
     },
@@ -587,6 +580,12 @@ function ExpertVault() {
   const [vaultMode, setVaultMode] = useState<VaultMode>("deposit");
   const [selectedAsset, setSelectedAsset] = useState<Asset>(xStockAssets[3]);
   const { balances, pendingDiv, refresh } = useVaultBalances(selectedAsset);
+  const liveAssets = usePythPrices();
+  const liveAsset = liveAssets.find((a) => a.symbol === selectedAsset.symbol);
+  const assetPrice = liveAsset?.price ?? 0;
+  // dx balance = deposited tokens (1:1 with deposit)
+  const dxNum = parseFloat(balances.dx) || 0;
+  const vaultBalanceUsd = dxNum * assetPrice;
 
   return (
     <div className="p-4 md:p-6 space-y-4 max-w-7xl mx-auto">
@@ -602,7 +601,7 @@ function ExpertVault() {
 
       {/* Stat cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 items-stretch">
-        {buildVaultStats(pendingDiv).map((stat, i) => (
+        {buildVaultStats(vaultBalanceUsd, pendingDiv, balances.dx).map((stat, i) => (
           <motion.div
             key={stat.label}
             className="h-full"
@@ -618,20 +617,12 @@ function ExpertVault() {
               </CardHeader>
               <CardContent className="px-4 pb-4 pt-0">
                 <div className="min-h-9">
-                  {stat.kind === "live" ? (
-                    <LiveVaultBalance
-                      principal={stat.principal}
-                      apyAnnual={stat.apyAnnual}
-                      size="md"
-                    />
-                  ) : (
-                    <div className="text-3xl font-bold tracking-tight">
-                      {stat.value}
-                    </div>
-                  )}
+                  <div className="text-3xl font-bold tracking-tight">
+                    {stat.value}
+                  </div>
                 </div>
                 <div className="flex items-center gap-1 mt-1">
-                  {stat.kind === "static" && stat.isBadge ? (
+                  {stat.isBadge ? (
                     <Badge className="bg-primary/10 text-primary border-0 text-[10px]">
                       {stat.change}
                     </Badge>
@@ -735,6 +726,11 @@ function GrandmaVault() {
   const { balances, pendingDiv, refresh } = useVaultBalances(selectedAsset);
   const { deposit, withdraw, claimDividend, isLoading, error } = useVault();
   const { authenticated } = usePrivy();
+  const liveAssets = usePythPrices();
+  const liveAsset = liveAssets.find((a) => a.symbol === selectedAsset.symbol);
+  const assetPrice = liveAsset?.price ?? 0;
+  const dxNum = parseFloat(balances.dx) || 0;
+  const vaultBalanceUsd = dxNum * assetPrice;
 
   const depositNum = parseFloat(depositAmount) || 0;
   const withdrawNum = parseFloat(withdrawAmount) || 0;
@@ -788,14 +784,14 @@ function GrandmaVault() {
         <Card className="border-primary/20">
           <CardContent className="p-6 text-center">
             <p className="text-sm text-muted-foreground mb-2">Vault Balance</p>
-            <div className="flex justify-center">
-              <LiveVaultBalance
-                principal={DEMO_VAULT_PRINCIPAL}
-                apyAnnual={DEMO_VAULT_APY_ANNUAL}
-                size="lg"
-                className="justify-center"
-              />
-            </div>
+            <p className="text-4xl font-semibold text-foreground tracking-tight">
+              {formatUsd(vaultBalanceUsd)}
+            </p>
+            {dxNum > 0 && (
+              <p className="text-sm text-muted-foreground mt-1">
+                {dxNum.toFixed(2)} xd{selectedAsset.symbol} @ {formatUsd(assetPrice)}
+              </p>
+            )}
           </CardContent>
         </Card>
       </motion.div>

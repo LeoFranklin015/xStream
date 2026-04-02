@@ -174,17 +174,13 @@ export const MOCK_ETH_SEPOLIA = {
 
 export type AssetConfig = (typeof PROD_INK_SEPOLIA.assets)[number];
 
-export function getContractConfig(chainId: number, useMock: boolean) {
-  if (useMock) {
-    switch (chainId) {
-      case 763373:
-        return { ...MOCK_INK_SEPOLIA, assets: PROD_INK_SEPOLIA.assets };
-      case 11155111:
-        return { ...MOCK_ETH_SEPOLIA, assets: PROD_ETH_SEPOLIA.assets };
-      default:
-        throw new Error(`Unsupported chain: ${chainId}`);
-    }
-  }
+// Mock deployments created their own MockXStock tokens during MockDeploy.
+// Those addresses are NOT the same as the prod Dinari xStock addresses.
+// Until we capture the mock asset addresses (from deployments/mock.json),
+// mock mode falls back to prod contracts for the vault (vault deposit/withdraw
+// does not depend on market status -- it works anytime).
+// Mock mode currently only affects the exchange/keeper (market gating).
+export function getContractConfig(chainId: number, _useMock: boolean) {
   switch (chainId) {
     case 763373:
       return PROD_INK_SEPOLIA;
