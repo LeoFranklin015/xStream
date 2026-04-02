@@ -48,6 +48,7 @@ async function ensureApproval(
       functionName: "approve",
       args: [spender, amount],
       account,
+      chain: walletClient.chain,
       gas: BigInt(100000),
     });
     await publicClient.waitForTransactionReceipt({ hash });
@@ -100,6 +101,7 @@ export function useEscrow() {
       publicClient,
       walletClient,
       cfg,
+      chain,
       chainId,
       account: wallet.address as `0x${string}`,
     };
@@ -116,7 +118,7 @@ export function useEscrow() {
       setIsLoading(true);
       setError(null);
       try {
-        const { publicClient, walletClient, cfg, account } =
+        const { publicClient, walletClient, cfg, chain, account } =
           await getClients();
         const escrowAddress = cfg.escrow as `0x${string}`;
         const rawAmount = parseUnits(amount, 18);
@@ -144,6 +146,7 @@ export function useEscrow() {
             BigInt(leaseDurationSecs),
           ],
           account,
+          chain,
           gas: BigInt(500000),
         });
 
@@ -165,7 +168,7 @@ export function useEscrow() {
       setIsLoading(true);
       setError(null);
       try {
-        const { publicClient, walletClient, cfg, account } =
+        const { publicClient, walletClient, cfg, chain, account } =
           await getClients();
         const escrowAddress = cfg.escrow as `0x${string}`;
         const usdcAddress = cfg.usdc as `0x${string}`;
@@ -187,6 +190,7 @@ export function useEscrow() {
           functionName: "placeBid",
           args: [BigInt(listingId), rawAmount],
           account,
+          chain,
           gas: BigInt(300000),
         });
 
@@ -208,7 +212,7 @@ export function useEscrow() {
       setIsLoading(true);
       setError(null);
       try {
-        const { publicClient, walletClient, cfg, account } =
+        const { publicClient, walletClient, cfg, chain, account } =
           await getClients();
         const hash = await walletClient.writeContract({
           address: cfg.escrow as `0x${string}`,
@@ -216,6 +220,7 @@ export function useEscrow() {
           functionName: "finalizeAuction",
           args: [BigInt(listingId)],
           account,
+          chain,
           gas: BigInt(300000),
         });
         await publicClient.waitForTransactionReceipt({ hash });
@@ -236,7 +241,7 @@ export function useEscrow() {
       setIsLoading(true);
       setError(null);
       try {
-        const { publicClient, walletClient, cfg, account } =
+        const { publicClient, walletClient, cfg, chain, account } =
           await getClients();
         const hash = await walletClient.writeContract({
           address: cfg.escrow as `0x${string}`,
@@ -244,6 +249,7 @@ export function useEscrow() {
           functionName: "cancelAuction",
           args: [BigInt(listingId)],
           account,
+          chain,
           gas: BigInt(300000),
         });
         await publicClient.waitForTransactionReceipt({ hash });
