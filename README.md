@@ -1,4 +1,4 @@
-# Pendlex
+# Xstream
 
 Monorepo for **xStream Markets**: a DeFi protocol and web app that split **tokenized equities (xStocks)** into separate **dividend (dx)** and **principal (px)** tokens so users can trade or hedge **yield versus price**.
 
