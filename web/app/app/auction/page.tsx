@@ -11,6 +11,7 @@ import {
   ChevronDown,
   Users,
   ArrowUpRight,
+  DollarSign,
 } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -89,48 +90,52 @@ function ListAuctionPanel({ onClose }: { onClose: () => void }) {
   const [quarters, setQuarters] = useState("");
   const [startingPrice, setStartingPrice] = useState("");
   const [showTokenMenu, setShowTokenMenu] = useState(false);
+  const clean = (v: string) => v.replace(/[^0-9.]/g, "");
 
   const selectedToken = xdTokens.find((t) => t.ticker === token);
 
   return (
     <div className="flex flex-col h-full">
-      <div className="flex items-center justify-between p-4 border-b border-border/50">
-        <h2 className="font-[family-name:var(--font-safira)] text-lg text-foreground">
+      <div className="flex items-center justify-between p-5 border-b border-border/50">
+        <h2 className="font-[family-name:var(--font-safira)] text-xl text-foreground">
           List for Auction
         </h2>
-        <Button variant="ghost" size="icon-sm" onClick={onClose}>
-          <X className="size-4" />
-        </Button>
+        <button
+          onClick={onClose}
+          className="size-10 rounded-xl bg-muted/40 flex items-center justify-center hover:bg-muted/60 transition-colors"
+        >
+          <X className="size-5 text-muted-foreground" />
+        </button>
       </div>
 
-      <div className="flex-1 overflow-y-auto p-4 space-y-5">
+      <div className="flex-1 overflow-y-auto p-5 space-y-3">
         {/* Token selector */}
-        <div className="space-y-1.5">
-          <label className="text-xs font-medium text-muted-foreground">
+        <div className="rounded-2xl bg-muted/30 border border-border/40 p-5">
+          <p className="text-sm text-muted-foreground font-medium mb-3">
             Select Token
-          </label>
+          </p>
           <div className="relative">
             <button
               onClick={() => setShowTokenMenu(!showTokenMenu)}
-              className="w-full flex items-center justify-between h-9 px-3 rounded-lg border border-border/50 bg-muted/30 text-sm text-foreground hover:bg-muted/50 transition-colors"
+              className="w-full flex items-center justify-between rounded-xl border border-border/50 bg-muted/40 px-4 py-3 text-base font-semibold text-foreground hover:bg-muted/60 transition-colors"
             >
               {selectedToken ? (
-                <span className="flex items-center gap-2">
+                <span className="flex items-center gap-3">
                   <TokenLogo
                     logo={selectedToken.logo}
                     color={selectedToken.color}
                     symbol={selectedToken.symbol}
-                    size="sm"
+                    size="md"
                   />
                   <span>{selectedToken.ticker}</span>
-                  <span className="text-muted-foreground text-xs">
+                  <span className="text-muted-foreground text-sm font-normal">
                     {selectedToken.name}
                   </span>
                 </span>
               ) : (
-                <span className="text-muted-foreground">Choose a token</span>
+                <span className="text-muted-foreground font-normal">Choose a token</span>
               )}
-              <ChevronDown className="size-4 text-muted-foreground" />
+              <ChevronDown className="size-5 text-muted-foreground" />
             </button>
             {showTokenMenu && (
               <>
@@ -138,7 +143,7 @@ function ListAuctionPanel({ onClose }: { onClose: () => void }) {
                   className="fixed inset-0 z-40"
                   onClick={() => setShowTokenMenu(false)}
                 />
-                <div className="absolute left-0 right-0 top-full mt-1 z-50 rounded-lg border border-border/50 bg-card shadow-lg py-1">
+                <div className="absolute left-0 right-0 top-full mt-2 z-50 rounded-xl border border-border/50 bg-card shadow-xl py-1.5 overflow-hidden">
                   {xdTokens.map((t) => (
                     <button
                       key={t.ticker}
@@ -146,9 +151,9 @@ function ListAuctionPanel({ onClose }: { onClose: () => void }) {
                         setToken(t.ticker);
                         setShowTokenMenu(false);
                       }}
-                      className={`w-full flex items-center gap-2 px-3 py-2 text-sm text-left transition-colors ${
+                      className={`w-full flex items-center gap-3 px-4 py-3 text-left transition-colors ${
                         token === t.ticker
-                          ? "text-primary bg-muted/30"
+                          ? "text-primary bg-primary/5"
                           : "text-foreground hover:bg-muted/30"
                       }`}
                     >
@@ -156,12 +161,12 @@ function ListAuctionPanel({ onClose }: { onClose: () => void }) {
                         logo={t.logo}
                         color={t.color}
                         symbol={t.symbol}
-                        size="sm"
+                        size="md"
                       />
-                      <span>{t.ticker}</span>
-                      <span className="text-xs text-muted-foreground">
-                        {t.name}
-                      </span>
+                      <div>
+                        <p className="text-sm font-semibold">{t.ticker}</p>
+                        <p className="text-xs text-muted-foreground">{t.name}</p>
+                      </div>
                     </button>
                   ))}
                 </div>
@@ -171,32 +176,38 @@ function ListAuctionPanel({ onClose }: { onClose: () => void }) {
         </div>
 
         {/* Amount */}
-        <div className="space-y-1.5">
-          <label className="text-xs font-medium text-muted-foreground">
+        <div className="rounded-2xl bg-muted/30 border border-border/40 p-5">
+          <p className="text-sm text-muted-foreground font-medium mb-3">
             Token Amount
-          </label>
-          <Input
-            type="number"
-            placeholder="e.g. 500"
+          </p>
+          <input
+            type="text"
+            inputMode="decimal"
+            placeholder="0"
             value={amount}
-            onChange={(e) => setAmount(e.target.value)}
-            className="h-9 bg-muted/30 border-border/50"
+            onChange={(e) => setAmount(clean(e.target.value))}
+            className="w-full bg-transparent text-4xl font-semibold tracking-tight text-foreground outline-none placeholder:text-muted-foreground/25 font-mono"
           />
+          {selectedToken && (
+            <p className="text-sm text-muted-foreground mt-3">
+              Balance: -- {selectedToken.ticker}
+            </p>
+          )}
         </div>
 
         {/* Quarters */}
-        <div className="space-y-1.5">
-          <label className="text-xs font-medium text-muted-foreground">
-            Number of Quarters
-          </label>
+        <div className="rounded-2xl bg-muted/30 border border-border/40 p-5">
+          <p className="text-sm text-muted-foreground font-medium mb-3">
+            Duration
+          </p>
           <div className="flex items-center gap-2">
             {[1, 2, 3, 4].map((q) => (
               <button
                 key={q}
                 onClick={() => setQuarters(String(q))}
-                className={`flex-1 h-9 rounded-lg text-sm font-medium border transition-all ${
+                className={`flex-1 h-12 rounded-xl text-base font-semibold border-2 transition-all ${
                   quarters === String(q)
-                    ? "border-primary/40 bg-primary/10 text-primary"
+                    ? "border-primary bg-primary/10 text-primary"
                     : "border-border/50 text-muted-foreground hover:text-foreground hover:bg-muted/30"
                 }`}
               >
@@ -207,48 +218,56 @@ function ListAuctionPanel({ onClose }: { onClose: () => void }) {
         </div>
 
         {/* Starting price */}
-        <div className="space-y-1.5">
-          <label className="text-xs font-medium text-muted-foreground">
-            Starting Price (USDC)
-          </label>
-          <Input
-            type="number"
-            placeholder="e.g. 1000"
-            value={startingPrice}
-            onChange={(e) => setStartingPrice(e.target.value)}
-            className="h-9 bg-muted/30 border-border/50"
-          />
+        <div className="rounded-2xl bg-muted/30 border border-border/40 p-5">
+          <p className="text-sm text-muted-foreground font-medium mb-3">
+            Starting Price
+          </p>
+          <div className="flex items-center justify-between gap-4">
+            <input
+              type="text"
+              inputMode="decimal"
+              placeholder="0"
+              value={startingPrice}
+              onChange={(e) => setStartingPrice(clean(e.target.value))}
+              className="min-w-0 flex-1 bg-transparent text-4xl font-semibold tracking-tight text-foreground outline-none placeholder:text-muted-foreground/25 font-mono"
+            />
+            <div className="flex items-center gap-2 rounded-full border border-border/60 bg-muted/40 px-4 py-2.5 shrink-0">
+              <DollarSign className="size-5 text-muted-foreground" />
+              <span className="text-base font-semibold text-foreground">USDC</span>
+            </div>
+          </div>
         </div>
 
         {/* Summary */}
         {token && amount && quarters && startingPrice && (
-          <div className="rounded-lg bg-muted/30 border border-border/50 p-3 space-y-2 text-xs">
-            <p className="font-medium text-foreground">Summary</p>
-            <div className="flex justify-between text-muted-foreground">
+          <div className="rounded-2xl bg-muted/20 border border-border/40 p-5 space-y-3">
+            <p className="text-sm font-semibold text-foreground">Summary</p>
+            <div className="flex justify-between text-sm text-muted-foreground">
               <span>Token</span>
-              <span className="text-foreground">{token}</span>
+              <span className="text-foreground font-medium">{token}</span>
             </div>
-            <div className="flex justify-between text-muted-foreground">
+            <div className="flex justify-between text-sm text-muted-foreground">
               <span>Amount</span>
-              <span className="text-foreground">{amount} tokens</span>
+              <span className="text-foreground font-medium">{amount} tokens</span>
             </div>
-            <div className="flex justify-between text-muted-foreground">
+            <div className="flex justify-between text-sm text-muted-foreground">
               <span>Duration</span>
-              <span className="text-foreground">{quarters} quarter(s)</span>
+              <span className="text-foreground font-medium">{quarters} quarter(s)</span>
             </div>
-            <div className="flex justify-between text-muted-foreground">
+            <div className="flex justify-between text-sm text-muted-foreground">
               <span>Min bid</span>
-              <span className="text-foreground">${startingPrice} USDC</span>
+              <span className="text-foreground font-medium">${startingPrice} USDC</span>
             </div>
           </div>
         )}
       </div>
 
-      <div className="p-4 border-t border-border/50">
+      <div className="p-5 border-t border-border/50">
         <Button
-          className="w-full bg-primary text-primary-foreground hover:bg-primary/80 font-medium"
+          className="w-full h-14 rounded-2xl bg-primary text-lg font-semibold text-primary-foreground hover:bg-primary/80 disabled:opacity-30 shadow-lg shadow-primary/10"
           disabled={!token || !amount || !quarters || !startingPrice}
         >
+          <Plus className="size-5 mr-2.5" />
           List for Auction
         </Button>
       </div>
@@ -266,122 +285,129 @@ function AuctionDetailPanel({
   onClose: () => void;
 }) {
   const [bidAmount, setBidAmount] = useState("");
+  const clean = (v: string) => v.replace(/[^0-9.]/g, "");
 
   return (
     <div className="flex flex-col h-full">
-      <div className="flex items-center justify-between p-4 border-b border-border/50">
+      {/* Header */}
+      <div className="flex items-center justify-between p-5 border-b border-border/50">
         <div className="flex items-center gap-3">
           <TokenLogo
             logo={auction.logo}
             color={auction.color}
             symbol={auction.symbol}
-            size="md"
+            size="lg"
           />
           <div>
             <div className="flex items-center gap-2">
-              <h2 className="font-[family-name:var(--font-safira)] text-lg text-foreground">
+              <h2 className="font-[family-name:var(--font-safira)] text-xl text-foreground">
                 {auction.token}
               </h2>
-              <Badge className="bg-foreground text-background text-[10px] font-semibold px-1.5 py-0.5">
+              <Badge className="bg-foreground text-background text-xs font-semibold px-2 py-0.5">
                 {(auction.dividendApy * 100).toFixed(2)}% APY
               </Badge>
             </div>
-            <div className="flex items-center gap-1.5 mt-0.5">
-              <span className="text-xs text-muted-foreground">
+            <div className="flex items-center gap-2 mt-1">
+              <span className="text-sm text-muted-foreground">
                 {auction.tokenAmount} tokens / {auction.quarters}Q
               </span>
               <span className="text-xs font-bold text-[#c8ff00]">+xPoints</span>
             </div>
           </div>
         </div>
-        <Button variant="ghost" size="icon-sm" onClick={onClose}>
-          <X className="size-4" />
-        </Button>
+        <button
+          onClick={onClose}
+          className="size-10 rounded-xl bg-muted/40 flex items-center justify-center hover:bg-muted/60 transition-colors"
+        >
+          <X className="size-5 text-muted-foreground" />
+        </button>
       </div>
 
-      <div className="flex-1 overflow-y-auto">
+      <div className="flex-1 overflow-y-auto p-5 space-y-4">
         {/* Stats */}
-        <div className="p-4 space-y-4">
-          <div className="grid grid-cols-2 gap-3">
-            <div className="rounded-lg bg-muted/30 border border-border/50 p-3">
-              <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">
-                Highest Bid
-              </p>
-              <p className="text-xl font-semibold text-primary mt-1">
-                ${auction.highestBid.toLocaleString()}
-              </p>
-              <p className="text-[10px] text-muted-foreground">USDC</p>
-            </div>
-            <div className="rounded-lg bg-muted/30 border border-border/50 p-3">
-              <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">
-                Starting Price
-              </p>
-              <p className="text-xl font-semibold text-foreground mt-1">
-                ${auction.startingPrice.toLocaleString()}
-              </p>
-              <p className="text-[10px] text-muted-foreground">USDC</p>
+        <div className="grid grid-cols-2 gap-3">
+          <div className="rounded-2xl bg-primary/5 border border-primary/20 p-4">
+            <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+              Highest Bid
+            </p>
+            <p className="text-3xl font-semibold text-primary mt-1.5 font-mono tracking-tight">
+              ${auction.highestBid.toLocaleString()}
+            </p>
+            <p className="text-xs text-muted-foreground mt-0.5">USDC</p>
+          </div>
+          <div className="rounded-2xl bg-muted/30 border border-border/40 p-4">
+            <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+              Starting Price
+            </p>
+            <p className="text-3xl font-semibold text-foreground mt-1.5 font-mono tracking-tight">
+              ${auction.startingPrice.toLocaleString()}
+            </p>
+            <p className="text-xs text-muted-foreground mt-0.5">USDC</p>
+          </div>
+        </div>
+
+        <div className="flex items-center justify-between text-sm px-1">
+          <div className="flex items-center gap-2 text-muted-foreground">
+            <Clock className="size-4" />
+            <span>{timeLeft(auction.endsAt)}</span>
+          </div>
+          <div className="flex items-center gap-2 text-muted-foreground">
+            <Users className="size-4" />
+            <span>{auction.bids.length} bids</span>
+          </div>
+        </div>
+
+        <div className="text-sm text-muted-foreground px-1">
+          <span>Seller: </span>
+          <span className="font-mono text-foreground font-medium">
+            {truncAddr(auction.seller)}
+          </span>
+        </div>
+
+        {/* Bid form */}
+        <div className="rounded-2xl bg-muted/30 border border-border/40 p-5">
+          <p className="text-sm text-muted-foreground font-medium mb-3">
+            Your Bid
+          </p>
+          <div className="flex items-center justify-between gap-4">
+            <input
+              type="text"
+              inputMode="decimal"
+              placeholder="0"
+              value={bidAmount}
+              onChange={(e) => setBidAmount(clean(e.target.value))}
+              className="min-w-0 flex-1 bg-transparent text-4xl font-semibold tracking-tight text-foreground outline-none placeholder:text-muted-foreground/25 font-mono"
+            />
+            <div className="flex items-center gap-2 rounded-full border border-border/60 bg-muted/40 px-4 py-2.5 shrink-0">
+              <DollarSign className="size-5 text-muted-foreground" />
+              <span className="text-base font-semibold text-foreground">USDC</span>
             </div>
           </div>
+          {auction.highestBid > 0 && (
+            <p className="text-sm text-muted-foreground mt-3">
+              Min bid: ${(auction.highestBid + 1).toLocaleString()} USDC
+            </p>
+          )}
+        </div>
 
-          <div className="flex items-center justify-between text-xs">
-            <div className="flex items-center gap-1.5 text-muted-foreground">
-              <Clock className="size-3" />
-              <span>{timeLeft(auction.endsAt)}</span>
-            </div>
-            <div className="flex items-center gap-1.5 text-muted-foreground">
-              <Users className="size-3" />
-              <span>{auction.bids.length} bids</span>
-            </div>
-          </div>
+        {/* Bid CTA */}
+        <Button
+          className="w-full h-14 rounded-2xl bg-primary text-lg font-semibold text-primary-foreground hover:bg-primary/80 disabled:opacity-30 shadow-lg shadow-primary/10"
+          disabled={!bidAmount}
+        >
+          <Gavel className="size-5 mr-2.5" />
+          Place Bid
+        </Button>
 
-          <div className="text-xs text-muted-foreground">
-            <span>Seller: </span>
-            <span className="font-mono text-foreground">
-              {truncAddr(auction.seller)}
-            </span>
-          </div>
-
-          <Separator className="opacity-50" />
-
-          {/* Bid form */}
+        {/* Bid list */}
+        <div className="pt-2">
+          <h3 className="text-sm font-semibold text-foreground mb-3 px-1">
+            All Bids ({auction.bids.length})
+          </h3>
           <div className="space-y-2">
-            <label className="text-xs font-medium text-muted-foreground">
-              Place your bid (USDC)
-            </label>
-            <div className="flex gap-2">
-              <Input
-                type="number"
-                placeholder={`Min ${auction.highestBid > 0 ? auction.highestBid + 1 : auction.startingPrice}`}
-                value={bidAmount}
-                onChange={(e) => setBidAmount(e.target.value)}
-                className="h-9 bg-muted/30 border-border/50 flex-1"
-              />
-              <Button
-                className="bg-primary text-primary-foreground hover:bg-primary/80 font-medium h-9 px-4"
-                disabled={!bidAmount}
-              >
-                Bid
-              </Button>
-            </div>
-            {auction.highestBid > 0 && (
-              <p className="text-[10px] text-muted-foreground">
-                Must be higher than ${auction.highestBid.toLocaleString()} USDC
-              </p>
-            )}
-          </div>
-
-          <Separator className="opacity-50" />
-
-          {/* Bid list */}
-          <div>
-            <h3 className="text-xs font-medium text-muted-foreground mb-3">
-              All Bids ({auction.bids.length})
-            </h3>
-            <div className="space-y-1">
-              {auction.bids.map((bid, i) => (
-                <BidRow key={bid.id} bid={bid} rank={i + 1} isTop={i === 0} />
-              ))}
-            </div>
+            {auction.bids.map((bid, i) => (
+              <BidRow key={bid.id} bid={bid} rank={i + 1} isTop={i === 0} />
+            ))}
           </div>
         </div>
       </div>
@@ -400,36 +426,36 @@ function BidRow({
 }) {
   return (
     <div
-      className={`flex items-center justify-between px-3 py-2.5 rounded-lg transition-colors ${
-        isTop ? "bg-primary/5 ring-1 ring-primary/20" : "hover:bg-muted/20"
+      className={`flex items-center justify-between px-4 py-3.5 rounded-xl transition-colors ${
+        isTop ? "bg-primary/5 ring-1 ring-primary/20" : "bg-muted/20 hover:bg-muted/30"
       }`}
     >
       <div className="flex items-center gap-3">
-        <span
-          className={`text-xs font-mono w-5 text-center ${
-            isTop ? "text-primary" : "text-muted-foreground"
+        <div
+          className={`size-8 rounded-lg flex items-center justify-center text-xs font-bold ${
+            isTop ? "bg-primary/10 text-primary" : "bg-muted/40 text-muted-foreground"
           }`}
         >
           #{rank}
-        </span>
+        </div>
         <div>
-          <p className="text-sm font-mono text-foreground">
+          <p className="text-sm font-mono font-medium text-foreground">
             {truncAddr(bid.bidder)}
           </p>
-          <p className="text-[10px] text-muted-foreground">
+          <p className="text-xs text-muted-foreground">
             {timeAgo(bid.timestamp)}
           </p>
         </div>
       </div>
       <div className="text-right">
         <p
-          className={`text-sm font-medium ${
+          className={`text-base font-semibold font-mono ${
             isTop ? "text-primary" : "text-foreground"
           }`}
         >
           ${bid.amount.toLocaleString()}
         </p>
-        <p className="text-[10px] text-muted-foreground">USDC</p>
+        <p className="text-xs text-muted-foreground">USDC</p>
       </div>
     </div>
   );
@@ -552,7 +578,7 @@ function SlidePanel({
             animate={{ x: 0 }}
             exit={{ x: "100%" }}
             transition={{ type: "spring", damping: 30, stiffness: 300 }}
-            className="fixed inset-y-0 right-0 z-50 w-full sm:w-[420px] bg-sidebar border-l border-border/50 shadow-2xl"
+            className="fixed inset-y-0 right-0 z-50 w-full sm:w-[460px] bg-sidebar border-l border-border/50 shadow-2xl"
           >
             {children}
           </motion.div>
