@@ -1,66 +1,81 @@
-## Foundry
+# xStream Markets — smart contracts
 
-**Foundry is a blazing fast, portable and modular toolkit for Ethereum application development written in Rust.**
+Foundry project for **xStream**: vault splitting of xStocks into **DividendToken (dx)** and **PrincipalToken (px)**, **PythAdapter** pricing, **MarketKeeper** session logic, **XStreamExchange**, and related tests.
 
-Foundry consists of:
+## Layout
 
-- **Forge**: Ethereum testing framework (like Truffle, Hardhat and DappTools).
-- **Cast**: Swiss army knife for interacting with EVM smart contracts, sending transactions and getting chain data.
-- **Anvil**: Local Ethereum node, akin to Ganache, Hardhat Network.
-- **Chisel**: Fast, utilitarian, and verbose solidity REPL.
+| Path | Role |
+|------|------|
+| `src/XStreamVault.sol` | Deposit xStock, mint dx + px, dividend sync, recombination |
+| `src/XStreamExchange.sol` | Exchange / trading logic for px |
+| `src/PythAdapter.sol` | Oracle normalization for Pyth |
+| `src/MarketKeeper.sol` | Market open / close coordination |
+| `src/tokens/DividendToken.sol` | dx ERC-20 |
+| `src/tokens/PrincipalToken.sol` | px ERC-20 |
+| `src/tokens/LPToken.sol` | LP token |
+| `src/DxLeaseEscrow.sol` | Escrow helper |
+| `test/` | Forge tests (vault, exchange, Pyth, dividends, sessions, etc.) |
+| `script/LifecycleTest.s.sol` | Lifecycle script |
 
-## Documentation
+Solidity **0.8.28**, `via_ir = true`. RPC aliases in `foundry.toml` include `anvil`, `ink`, `ink_sepolia`.
 
-https://book.getfoundry.sh/
+## Dependencies
 
-## Usage
-
-### Build
-
-```shell
-$ forge build
-```
-
-### Test
-
-```shell
-$ forge test
-```
-
-### Format
+If `lib/` is empty, install remapped deps from the repo root:
 
 ```shell
-$ forge fmt
+cd contracts
+forge install foundry-rs/forge-std --no-commit
+forge install OpenZeppelin/openzeppelin-contracts --no-commit
+forge install pyth-network/pyth-sdk-solidity --no-commit
 ```
 
-### Gas Snapshots
+(`--no-commit` skips a git submodule commit; adjust if you use submodules.)
+
+## Commands
+
+Build:
 
 ```shell
-$ forge snapshot
+forge build
 ```
 
-### Anvil
+Test:
 
 ```shell
-$ anvil
+forge test
 ```
 
-### Deploy
+Format:
 
 ```shell
-$ forge script script/Counter.s.sol:CounterScript --rpc-url <your_rpc_url> --private-key <your_private_key>
+forge fmt
 ```
 
-### Cast
+Gas snapshots:
 
 ```shell
-$ cast <subcommand>
+forge snapshot
 ```
 
-### Help
+Local node:
 
 ```shell
-$ forge --help
-$ anvil --help
-$ cast --help
+anvil
 ```
+
+Lifecycle integration script (see file header for full notes; typically `anvil` in one terminal, then):
+
+```shell
+forge script script/LifecycleTest.s.sol:LifecycleTest --rpc-url anvil --broadcast -vvvv
+```
+
+Cast:
+
+```shell
+cast <subcommand>
+```
+
+## Foundry reference
+
+Full toolkit docs: [https://book.getfoundry.sh/](https://book.getfoundry.sh/)
