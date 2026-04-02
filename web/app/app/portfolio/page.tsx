@@ -45,7 +45,7 @@ import {
 } from "viem";
 import { inkSepolia, sepolia } from "viem/chains";
 import { ERC20_ABI } from "@/lib/contracts/abis";
-import { getRpcUrl } from "@/lib/contracts/client";
+import { getRpcUrl } from "@/lib/contracts/config";
 
 // Mock portfolio value over time
 const portfolioData = Array.from({ length: 60 }, (_, i) => {

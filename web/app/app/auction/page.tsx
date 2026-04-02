@@ -35,7 +35,7 @@ import {
 } from "@/lib/contracts/addresses";
 import { createPublicClient, http, formatUnits } from "viem";
 import { inkSepolia, sepolia } from "viem/chains";
-import { getRpcUrl } from "@/lib/contracts/client";
+import { getRpcUrl } from "@/lib/contracts/config";
 
 // ---- Helpers ----
 
