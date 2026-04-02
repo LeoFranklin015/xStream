@@ -195,13 +195,35 @@ export const MOCK_ETH_SEPOLIA = {
 
 export type ContractMode = "prod" | "mock";
 
-// Mock deployments created their own MockXStock tokens during MockDeploy.
-// Those addresses are NOT the same as the prod Dinari xStock addresses.
-// Until we capture the mock asset addresses (from deployments/mock.json),
-// mock mode falls back to prod contracts for the vault (vault deposit/withdraw
-// does not depend on market status -- it works anytime).
-// Mock mode currently only affects the exchange/keeper (market gating).
-export function getContractConfig(chainId: number, _useMock: boolean) {
+export function getContractConfig(chainId: number, contractMode: ContractMode): ContractConfig {
+  if (contractMode === "mock") {
+    switch (chainId) {
+      case 763373:
+        return {
+          pythContract: MOCK_INK_SEPOLIA.mockPyth,
+          pythAdapter: MOCK_INK_SEPOLIA.pythAdapter,
+          usdc: MOCK_INK_SEPOLIA.usdc,
+          vault: MOCK_INK_SEPOLIA.vault,
+          exchange: MOCK_INK_SEPOLIA.exchange,
+          marketKeeper: MOCK_INK_SEPOLIA.marketKeeper,
+          escrow: MOCK_INK_SEPOLIA.escrow,
+          assets: PROD_INK_SEPOLIA.assets,
+        };
+      case 11155111:
+        return {
+          pythContract: MOCK_ETH_SEPOLIA.mockPyth,
+          pythAdapter: MOCK_ETH_SEPOLIA.pythAdapter,
+          usdc: MOCK_ETH_SEPOLIA.usdc,
+          vault: MOCK_ETH_SEPOLIA.vault,
+          exchange: MOCK_ETH_SEPOLIA.exchange,
+          marketKeeper: MOCK_ETH_SEPOLIA.marketKeeper,
+          escrow: MOCK_ETH_SEPOLIA.escrow,
+          assets: PROD_ETH_SEPOLIA.assets,
+        };
+      default:
+        throw new Error(`Unsupported chain: ${chainId}`);
+    }
+  }
   switch (chainId) {
     case 763373:
       return PROD_INK_SEPOLIA;
