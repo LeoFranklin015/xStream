@@ -40,8 +40,7 @@ export const metadata: Metadata = {
     default: `${APP_NAME} | Split xStocks into dx and px`,
     template: `%s | ${APP_NAME}`,
   },
-  description:
-    `${APP_NAME} is a DeFi protocol that splits tokenized equities (xStocks) into a dividend token (dx) and a principal token (px): yield around the clock, price exposure in NYSE hours, and recombination to the underlying.`,
+  description: `${APP_NAME} is a DeFi protocol that splits tokenized equities (xStocks) into a dividend token (dx) and a principal token (px): yield around the clock, price exposure in NYSE hours, and recombination to the underlying.`,
   applicationName: APP_NAME_FULL,
   manifest: "/site.webmanifest",
   openGraph: {
