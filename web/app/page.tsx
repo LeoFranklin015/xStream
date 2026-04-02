@@ -23,7 +23,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import Navbar from "@/components/navbar";
 import Footer from "@/components/footer";
-import LiquidEther from "@/components/LiquidEther";
 import HeroSplitVisual from "@/components/landing/HeroSplitVisual";
 import CoreTechnology from "@/components/landing/CoreTechnology";
 
@@ -210,19 +209,6 @@ export default function Home() {
       {/* Hero                                                              */}
       {/* ----------------------------------------------------------------- */}
       <section className="relative overflow-hidden bg-background">
-        <div className="pointer-events-none absolute inset-0 z-0">
-          <LiquidEther
-            colors={["#e8e8e8", "#4d7a00", "#8fd400"]}
-            resolution={0.45}
-            mouseForce={18}
-            autoSpeed={0.45}
-          />
-        </div>
-        {/* Legibility: darken behind copy (left), keep ether visible on the right */}
-        <div
-          className="pointer-events-none absolute inset-0 z-[1] bg-[radial-gradient(ellipse_90%_120%_at_0%_40%,#ffffff_0%,transparent_55%),radial-gradient(ellipse_at_70%_30%,transparent_20%,#ffffff_75%)]"
-        />
-
         <div className="relative z-10 mx-auto grid max-w-7xl grid-cols-1 items-center gap-12 px-4 pb-16 pt-28 sm:px-6 lg:grid-cols-2 lg:gap-10 lg:px-8 lg:pt-36 lg:pb-24">
           <div className="flex flex-col text-center lg:text-left">
             <motion.div
