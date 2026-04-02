@@ -21,7 +21,16 @@ export interface AuctionListing {
   endsAt: number; // unix ms
   logo: string;
   color: string;
+  dividendApy: number; // 4-year avg dividend yield
 }
+
+// 4-year average dividend yield (2022-2025) per underlying symbol
+export const DIVIDEND_APY: Record<string, number> = {
+  NVDA: 0.0003,  // ~0.03% -- minimal dividend, reinvests heavily
+  GOOGL: 0.0012, // ~0.12% -- only started paying in Q2 2024
+  AAPL: 0.0055,  // ~0.55% -- consistent quarterly payer
+  SPY: 0.0143,   // ~1.43% -- S&P 500 aggregate dividends
+};
 
 // Derive xd token list from existing xStock assets
 export const xdTokens = xStockAssets.map((a) => ({
@@ -87,6 +96,7 @@ function listing(
     endsAt: NOW + daysLeft * DAY,
     logo: tok.logo,
     color: tok.color,
+    dividendApy: DIVIDEND_APY[tok.symbol] ?? 0,
   };
 }
 
@@ -96,7 +106,6 @@ export const mockAuctions: AuctionListing[] = [
   listing("auc-3", 2, 1000, 3, 800, 4, 2, 2),    // xdAAPL
   listing("auc-4", 3, 300, 1, 350, 2, 7, 3),     // xdSPY
   listing("auc-5", 0, 150, 2, 600, 4, 4, 4),     // xdNVDA
-  listing("auc-6", 4, 800, 4, 200, 3, 6, 5),     // xdTBLL
-  listing("auc-7", 2, 250, 1, 300, 5, 1, 0),     // xdAAPL
-  listing("auc-8", 1, 400, 3, 900, 4, 3, 1),     // xdGOOGL
+  listing("auc-6", 2, 250, 1, 300, 5, 1, 0),     // xdAAPL
+  listing("auc-7", 1, 400, 3, 900, 4, 3, 1),     // xdGOOGL
 ];

@@ -20,6 +20,7 @@ import { Separator } from "@/components/ui/separator";
 import {
   mockAuctions,
   xdTokens,
+  DIVIDEND_APY,
   type AuctionListing,
   type AuctionBid,
 } from "@/lib/auction-data";
@@ -277,12 +278,20 @@ function AuctionDetailPanel({
             size="md"
           />
           <div>
-            <h2 className="font-[family-name:var(--font-safira)] text-lg text-foreground">
-              {auction.token}
-            </h2>
-            <p className="text-xs text-muted-foreground">
-              {auction.tokenAmount} tokens / {auction.quarters}Q
-            </p>
+            <div className="flex items-center gap-2">
+              <h2 className="font-[family-name:var(--font-safira)] text-lg text-foreground">
+                {auction.token}
+              </h2>
+              <Badge className="bg-foreground text-background text-[10px] font-semibold px-1.5 py-0.5">
+                {(auction.dividendApy * 100).toFixed(2)}% APY
+              </Badge>
+            </div>
+            <div className="flex items-center gap-1.5 mt-0.5">
+              <span className="text-xs text-muted-foreground">
+                {auction.tokenAmount} tokens / {auction.quarters}Q
+              </span>
+              <span className="text-xs font-bold text-[#c8ff00]">+xPoints</span>
+            </div>
           </div>
         </div>
         <Button variant="ghost" size="icon-sm" onClick={onClose}>
@@ -451,17 +460,22 @@ function AuctionCard({
             <p className="text-sm font-medium text-foreground">
               {auction.token}
             </p>
-            <p className="text-xs text-muted-foreground">
+            <p className="text-xs text-muted-foreground mt-0.5">
               {auction.tokenAmount} tokens
             </p>
           </div>
         </div>
-        <Badge
-          variant="secondary"
-          className="text-[10px]"
-        >
-          {auction.quarters}Q
-        </Badge>
+        <div className="flex flex-col items-end gap-1">
+          <Badge
+            variant="secondary"
+            className="text-[10px]"
+          >
+            {auction.quarters}Q
+          </Badge>
+          <Badge className="bg-foreground text-background text-[10px] font-semibold px-1.5 py-0.5">
+            {(auction.dividendApy * 100).toFixed(2)}% APY +xPoints
+          </Badge>
+        </div>
       </div>
 
       <div className="mx-3 mb-3 rounded-lg overflow-hidden bg-muted/20 p-3 space-y-3">
